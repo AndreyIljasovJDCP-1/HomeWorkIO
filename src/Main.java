@@ -5,6 +5,14 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) throws IOException {
         Scanner scanner = new Scanner(System.in);
+        String[] products=new String[]{
+                "Нарзан 0.5 л.",
+                "Шоколад 100 гр.",
+                "Йогурт",
+                "Сырок глазированный",
+                "Пломбир"
+        };
+        int[] prices=new int[]{80, 100, 50, 30, 70};
         int productCode;
         int productAmount;
         Basket basket;
@@ -16,9 +24,9 @@ public class Main {
             if (file.createNewFile()) {
                 System.out.println("\nСоздан файл для хранения корзины-> "
                         + file.getAbsolutePath());
-                basket = new Basket();
+                basket = new Basket(products,prices);
             } else {
-                basket = Basket.loadFromTxtFile(file);
+                basket = Basket.loadFromTxtFile(file,products,prices);
                 System.out.println("\nКорзина восстановлена из файла-> "
                         + file.getAbsolutePath());
                 basket.printSummaryList();

@@ -9,15 +9,9 @@ public class Basket {
     private final String[] products;
 
 
-    public Basket() {
-        this.prices = new int[]{80, 100, 50, 30, 70};
-        this.products = new String[]{
-                "Нарзан 0.5 л.",
-                "Шоколад 100 гр.",
-                "Йогурт",
-                "Сырок глазированный",
-                "Пломбир"
-        };
+    public Basket(String[] products, int[] prices) {
+        this.prices = prices;
+        this.products = products;
         this.basket = new int[products.length];
         addSpaces();
     }
@@ -59,7 +53,7 @@ public class Basket {
         buffer.close();
     }
 
-    static Basket loadFromTxtFile(File textFile) throws IOException {
+    static Basket loadFromTxtFile(File textFile,String[] products, int[] prices) throws IOException {
 
         BufferedReader buffer = new BufferedReader(new FileReader(textFile));
         String fileData = "";
@@ -67,7 +61,7 @@ public class Basket {
             fileData = buffer.readLine();
         }
         buffer.close();
-        Basket basket = new Basket();
+        Basket basket = new Basket(products,prices);
         basket.basket = Arrays.stream(fileData.split(" "))
                 .mapToInt(Integer::parseInt)
                 .toArray();
