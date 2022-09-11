@@ -16,7 +16,7 @@ public class Main {
         int productCode;
         int productAmount;
         Basket basket;
-        String fileName = "basket.txt";
+        String fileName = "basket.bin";
 
         File file = new File(fileName);
 
@@ -26,7 +26,7 @@ public class Main {
                         + file.getAbsolutePath());
                 basket = new Basket(products,prices);
             } else {
-                basket = Basket.loadFromTxtFile(file,products,prices);
+                basket = Basket.loadFromBinFile(file);
                 System.out.println("\nКорзина восстановлена из файла-> "
                         + file.getAbsolutePath());
                 basket.printSummaryList();
@@ -73,7 +73,7 @@ public class Main {
             }
 
             basket.addToList(productCode, productAmount);
-            basket.saveToTxtFile(file);
+            basket.saveToBinFile(file);
         }
         basket.printSummaryList();
     }

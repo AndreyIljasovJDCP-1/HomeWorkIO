@@ -1,13 +1,14 @@
 import java.io.*;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.stream.Collectors;
 
-public class Basket {
+public class Basket implements Serializable {
     private int[] basket;
-    private final int[] prices;
-    private final String[] products;
+    private int[] prices = new int[]{};
+    private String[] products = new String[]{};
 
+    public Basket() {
+    }
 
     public Basket(String[] products, int[] prices) {
         this.prices = prices;
@@ -42,29 +43,27 @@ public class Basket {
         }
     }
 
-    public void saveToTxtFile(File textFile) throws IOException {
+    public void saveToBinFile(File textFile) {
 
-        String basketTxt = Arrays.stream(basket)
-                .mapToObj(c -> c + " ")
-                .collect(Collectors.joining());
+        try (FileOutputStream fos = new FileOutputStream(textFile);
+             ObjectOutputStream basketWriter = new ObjectOutputStream(fos)) {
 
-        BufferedWriter buffer = new BufferedWriter(new FileWriter(textFile));
-        buffer.write(basketTxt);
-        buffer.close();
+            basketWriter.writeObject(this);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
-    static Basket loadFromTxtFile(File textFile,String[] products, int[] prices) throws IOException {
+    static Basket loadFromBinFile(File textFile) {
 
-        BufferedReader buffer = new BufferedReader(new FileReader(textFile));
-        String fileData = "";
-        while (buffer.ready()) {
-            fileData = buffer.readLine();
+        Basket basket;
+
+        try (FileInputStream fis = new FileInputStream(textFile);
+             ObjectInputStream basketReader = new ObjectInputStream(fis)) {
+            basket = (Basket) basketReader.readObject();
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
         }
-        buffer.close();
-        Basket basket = new Basket(products,prices);
-        basket.basket = Arrays.stream(fileData.split(" "))
-                .mapToInt(Integer::parseInt)
-                .toArray();
         return basket;
     }
 
