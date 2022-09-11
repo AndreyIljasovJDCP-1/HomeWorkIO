@@ -3,12 +3,11 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 public class Basket implements Serializable {
-    private int[] basket;
-    private int[] prices = new int[]{};
-    private String[] products = new String[]{};
 
-    public Basket() {
-    }
+    private static final long serialVersionUID = 1234567777L;
+    private final int[] basket;
+    private final int[] prices;
+    private final String[] products;
 
     public Basket(String[] products, int[] prices) {
         this.prices = prices;
@@ -28,7 +27,6 @@ public class Basket implements Serializable {
      * Для ровного вывода на печать.
      */
     void addSpaces() {
-
         int max = Arrays.stream(products)
                 .max(Comparator.comparingInt(String::length))
                 .orElseGet(String::new)
@@ -47,7 +45,6 @@ public class Basket implements Serializable {
 
         try (FileOutputStream fos = new FileOutputStream(textFile);
              ObjectOutputStream basketWriter = new ObjectOutputStream(fos)) {
-
             basketWriter.writeObject(this);
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage());
@@ -79,9 +76,14 @@ public class Basket implements Serializable {
         for (int i = 0, j = 1; i < products.length; i++) {
             if (basket[i] > 0) {
                 System.out.printf("%d) код %d. %s Цена: %3d руб. Количество: %3d шт. Всего на: %4d руб.\n",
-                        j, i + 1, products[i], prices[i], basket[i], basket[i] * prices[i]);
+                        j++,
+                        i + 1,
+                        products[i],
+                        prices[i],
+                        basket[i],
+                        basket[i] * prices[i]
+                );
                 basketSum += basket[i] * prices[i];
-                j++;
             }
         }
         System.out.println("Итого " + basketSum + " руб.");
@@ -92,7 +94,10 @@ public class Basket implements Serializable {
 
         for (int i = 0; i < basket.length; i++) {
             System.out.printf("%d. %s Цена: %3d руб/шт.\n",
-                    i + 1, products[i], prices[i]);
+                    i + 1,
+                    products[i],
+                    prices[i]
+            );
         }
     }
 }

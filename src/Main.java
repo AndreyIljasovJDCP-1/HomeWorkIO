@@ -3,16 +3,16 @@ import java.io.IOException;
 import java.util.Scanner;
 
 public class Main {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        String[] products=new String[]{
+        String[] products = new String[]{
                 "Нарзан 0.5 л.",
                 "Шоколад 100 гр.",
                 "Йогурт",
                 "Сырок глазированный",
                 "Пломбир"
         };
-        int[] prices=new int[]{80, 100, 50, 30, 70};
+        int[] prices = new int[]{80, 100, 50, 30, 70};
         int productCode;
         int productAmount;
         Basket basket;
@@ -24,7 +24,7 @@ public class Main {
             if (file.createNewFile()) {
                 System.out.println("\nСоздан файл для хранения корзины-> "
                         + file.getAbsolutePath());
-                basket = new Basket(products,prices);
+                basket = new Basket(products, prices);
             } else {
                 basket = Basket.loadFromBinFile(file);
                 System.out.println("\nКорзина восстановлена из файла-> "
@@ -39,7 +39,7 @@ public class Main {
 
         while (true) {
             int basketSize = basket.getProducts().length;
-            System.out.println("\nВведите код товара и кол-во через пробел, end - выход.");
+            System.out.println("\nВведите код товара(1-5) и кол-во через пробел, end -> выход.");
             String input = scanner.nextLine();
 
             if ("end".equals(input)) {
@@ -49,7 +49,7 @@ public class Main {
             String[] parts = input.split(" ");
 
             if (parts.length != 2) {
-                System.out.println("Ошибка! Нужно ввести 2 числа через пробел.");
+                errorMessage();
                 continue;
             }
 
@@ -57,18 +57,18 @@ public class Main {
                 productCode = Integer.parseInt(parts[0]) - 1;
 
                 if (productCode < 0 || productCode > basketSize - 1) {
-                    System.out.println("Ошибка! Код товара д.б. от 1 до " + basketSize);
+                   errorMessage();
                     continue;
                 }
             } catch (NumberFormatException e) {
-                System.out.println("Ошибка! Введены некорректные данные!");
+                errorMessage();
                 continue;
             }
 
             try {
                 productAmount = Integer.parseInt(parts[1]);
             } catch (NumberFormatException e) {
-                System.out.println("Ошибка! Введены некорректные данные!");
+                errorMessage();
                 continue;
             }
 
@@ -76,6 +76,9 @@ public class Main {
             basket.saveToBinFile(file);
         }
         basket.printSummaryList();
+    }
+    public static void errorMessage(){
+        System.out.println("Ошибка! Введены некорректные данные!");
     }
 }
 
