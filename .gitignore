@@ -3,3 +3,5 @@
 out/
 *.txt
 *.bin
+target/
+basket_repo/

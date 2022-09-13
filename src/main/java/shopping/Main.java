@@ -19,15 +19,18 @@ public class Main {
         int productAmount;
         Basket basket;
         String fileName = "basket_repo/basket.txt";
-
         File file = new File(fileName);
+        File fileCSV=new File("basket_repo/log.csv");
+        File fileJson=new File("basket_repo/basket.json");
+        ClientLog clientLog=new ClientLog();
 
         try {
             if (file.createNewFile()) {
                 System.out.println("\nСоздан файл для хранения корзины-> "
-                        + file.getAbsolutePath());
+                        + fileJson.getAbsolutePath());
                 basket = new Basket(products,prices);
             } else {
+
                 basket = Basket.loadFromTxtFile(file,products,prices);
                 System.out.println("\nКорзина восстановлена из файла-> "
                         + file.getAbsolutePath());
@@ -75,9 +78,11 @@ public class Main {
             }
 
             basket.addToList(productCode, productAmount);
+            clientLog.log(productCode,productAmount);
             basket.saveToTxtFile(file);
         }
         basket.printSummaryList();
+        clientLog.exportAsCSV(fileCSV);
     }
 }
 
