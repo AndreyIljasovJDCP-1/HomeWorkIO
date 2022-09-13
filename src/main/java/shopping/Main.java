@@ -1,3 +1,5 @@
+package shopping;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Scanner;
@@ -16,7 +18,7 @@ public class Main {
         int productCode;
         int productAmount;
         Basket basket;
-        String fileName = "basket.txt";
+        String fileName = "basket_repo/basket.txt";
 
         File file = new File(fileName);
 
