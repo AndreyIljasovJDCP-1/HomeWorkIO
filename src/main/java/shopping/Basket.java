@@ -5,11 +5,14 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.stream.Collectors;
 
-public class Basket {
-    private int[] basket;
-    private final int[] prices;
-    private final String[] products;
+public class Basket implements Serializable {
 
+    private int[] basket;
+    private int[] prices;
+    private String[] products;
+
+    public Basket() {
+    }
 
     public Basket(String[] products, int[] prices) {
         this.prices = prices;
@@ -44,34 +47,46 @@ public class Basket {
         }
     }
 
-    public void saveToTxtFile(File textFile) throws IOException {
-
+    public void saveToTxtFile(File textFile) {
         String basketTxt = Arrays.stream(basket)
                 .mapToObj(c -> c + " ")
                 .collect(Collectors.joining());
 
-        BufferedWriter buffer = new BufferedWriter(new FileWriter(textFile));
-        buffer.write(basketTxt);
-        buffer.close();
+        try (BufferedWriter buffer = new BufferedWriter(new FileWriter(textFile))) {
+            buffer.write(basketTxt);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
-    static Basket loadFromTxtFile(File textFile,String[] products, int[] prices) throws IOException {
-
-        BufferedReader buffer = new BufferedReader(new FileReader(textFile));
-        String fileData = "";
-        while (buffer.ready()) {
-            fileData = buffer.readLine();
+    static Basket loadFromTxtFile(File textFile, String[] products, int[] prices) {
+        Basket basket;
+        try (BufferedReader buffer = new BufferedReader(new FileReader(textFile))) {
+            String fileData = "";
+            while (buffer.ready()) {
+                fileData = buffer.readLine();
+            }
+            buffer.close();
+            basket = new Basket(products, prices);
+            basket.basket = Arrays.stream(fileData.split(" "))
+                    .mapToInt(Integer::parseInt)
+                    .toArray();
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
         }
-        buffer.close();
-        Basket basket = new Basket(products,prices);
-        basket.basket = Arrays.stream(fileData.split(" "))
-                .mapToInt(Integer::parseInt)
-                .toArray();
         return basket;
     }
 
     public String[] getProducts() {
         return products;
+    }
+
+    public int[] getBasket() {
+        return basket;
+    }
+
+    public int[] getPrices() {
+        return prices;
     }
 
     public void printSummaryList() {
