@@ -1,9 +1,14 @@
 package shopping;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Scanner;
 
 public class Main {
@@ -17,6 +22,7 @@ public class Main {
                 "Пломбир"
         };
         int[] prices = new int[]{80, 100, 50, 30, 70};
+        int basketSize = prices.length;
         int productCode;
         int productAmount;
         Basket basket;
@@ -27,9 +33,20 @@ public class Main {
 
         if (fileJson.exists()) {
             try {
-                ObjectMapper mapper = new ObjectMapper();
-                basket = mapper.readValue(fileJson, Basket.class);
-                System.out.println("\nКорзина восстановлена из файла-> "
+
+                JSONParser parser = new JSONParser();
+                JSONObject jsonObject = (JSONObject) parser.parse(new FileReader(fileJson));
+                JSONArray bask = (JSONArray) jsonObject.get("basket");
+                basket = new Basket(products, prices);
+
+                int[] temp = new int[basketSize];
+
+                for (int i = 0; i < basketSize; i++) {
+                    temp[i] = ((Long) bask.get(i)).intValue();
+                }
+                basket.setBasket(temp);
+
+                System.out.println("\nИнформация восстановлена из файла-> "
                         + fileJson.getAbsolutePath());
                 basket.printSummaryList();
             } catch (Exception e) {
@@ -39,7 +56,7 @@ public class Main {
             basket = new Basket(products, prices);
         }
         basket.printPossibleList();
-        int basketSize = basket.getProducts().length;
+
 
         while (true) {
             System.out.println("\nВведите код товара и кол-во через пробел, end - выход.");
@@ -82,10 +99,26 @@ public class Main {
         basket.printSummaryList();
         clientLog.exportAsCSV(fileCSV);
 
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.writeValue(fileJson, basket);
-            System.out.println("\nИнформация записана в файл -> "
+        JSONObject obj = new JSONObject();
+
+        JSONArray listPrices = new JSONArray();
+        JSONArray listProduct = new JSONArray();
+        JSONArray listBasket = new JSONArray();
+
+        Collections.addAll(listProduct, basket.getProducts());
+
+        for (int i = 0; i < basketSize; i++) {
+            listBasket.add(basket.getBasket()[i]);
+            listPrices.add(basket.getPrices()[i]);
+
+        }
+        obj.put("products", listProduct);
+        obj.put("prices", listPrices);
+        obj.put("basket", listBasket);
+
+        try (FileWriter fileWriter = new FileWriter(fileJson)) {
+            fileWriter.write(obj.toJSONString());
+            System.out.println("\nИнформация сохранена в файл-> "
                     + fileJson.getAbsolutePath());
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage());

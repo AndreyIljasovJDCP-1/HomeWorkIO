@@ -89,6 +89,10 @@ public class Basket implements Serializable {
         return prices;
     }
 
+    public void setBasket(int[] basket) {
+        this.basket = basket;
+    }
+
     public void printSummaryList() {
         int basketSum = 0;
 
