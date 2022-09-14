@@ -1,14 +1,15 @@
 package shopping;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) throws IOException {
         Scanner scanner = new Scanner(System.in);
+
         String[] products = new String[]{
                 "Нарзан 0.5 л.",
                 "Шоколад 100 гр.",
@@ -17,19 +18,28 @@ public class Main {
                 "Пломбир"
         };
         int[] prices = new int[]{80, 100, 50, 30, 70};
+        int basketSize = prices.length;
         int productCode;
         int productAmount;
-        Basket basket;
+
         File fileTxt = new File("basket_repo/basket.txt");
         File fileCSV = new File("basket_repo/log.csv");
         File fileJson = new File("basket_repo/basket.json");
+
         ClientLog clientLog = new ClientLog();
+        GsonBuilder builder = new GsonBuilder();
+        Gson gson = builder.create();
+        String stringJson = "";
+        Basket basket;
 
         if (fileJson.exists()) {
-            try {
-                ObjectMapper mapper = new ObjectMapper();
-                basket = mapper.readValue(fileJson, Basket.class);
-                System.out.println("\nКорзина восстановлена из файла-> "
+
+            try (BufferedReader reader = new BufferedReader(new FileReader(fileJson))) {
+                while (reader.ready()) {
+                    stringJson = reader.readLine();
+                }
+                basket = gson.fromJson(stringJson, Basket.class);
+                System.out.println("\nИнформация восстановлена из файла-> "
                         + fileJson.getAbsolutePath());
                 basket.printSummaryList();
             } catch (Exception e) {
@@ -39,10 +49,9 @@ public class Main {
             basket = new Basket(products, prices);
         }
         basket.printPossibleList();
-        int basketSize = basket.getProducts().length;
 
         while (true) {
-            System.out.println("\nВведите код товара и кол-во через пробел, end - выход.");
+            System.out.println("Введите код товара и кол-во через пробел, end - выход.");
             String input = scanner.nextLine();
 
             if ("end".equals(input)) {
@@ -82,9 +91,9 @@ public class Main {
         basket.printSummaryList();
         clientLog.exportAsCSV(fileCSV);
 
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.writeValue(fileJson, basket);
+        stringJson = gson.toJson(basket);
+        try (FileWriter writer = new FileWriter(fileJson)) {
+            writer.write(stringJson);
             System.out.println("\nИнформация записана в файл -> "
                     + fileJson.getAbsolutePath());
         } catch (Exception e) {
