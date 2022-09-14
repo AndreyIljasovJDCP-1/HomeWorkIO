@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 
 import java.io.*;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class Main {
     public static void main(String[] args) throws IOException {
@@ -28,7 +29,9 @@ public class Main {
 
         ClientLog clientLog = new ClientLog();
         GsonBuilder builder = new GsonBuilder();
+        builder.setPrettyPrinting();
         Gson gson = builder.create();
+
         String stringJson = "";
         Basket basket;
 
@@ -36,7 +39,7 @@ public class Main {
 
             try (BufferedReader reader = new BufferedReader(new FileReader(fileJson))) {
                 while (reader.ready()) {
-                    stringJson = reader.readLine();
+                    stringJson = reader.lines().collect(Collectors.joining(System.lineSeparator()));
                 }
                 basket = gson.fromJson(stringJson, Basket.class);
                 System.out.println("\nИнформация восстановлена из файла-> "
