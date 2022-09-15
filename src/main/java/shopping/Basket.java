@@ -57,6 +57,7 @@ public class Basket implements Serializable {
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage());
         }
+
     }
 
     static Basket loadFromTxtFile(File textFile, String[] products, int[] prices) {

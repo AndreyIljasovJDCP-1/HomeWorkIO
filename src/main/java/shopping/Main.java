@@ -1,13 +1,23 @@
 package shopping;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
         Scanner scanner = new Scanner(System.in);
         String[] products = new String[]{
                 "Нарзан 0.5 л.",
@@ -19,25 +29,70 @@ public class Main {
         int[] prices = new int[]{80, 100, 50, 30, 70};
         int productCode;
         int productAmount;
-        Basket basket;
-        File fileTxt = new File("basket_repo/basket.txt");
-        File fileCSV = new File("basket_repo/log.csv");
-        File fileJson = new File("basket_repo/basket.json");
-        ClientLog clientLog = new ClientLog();
 
-        if (fileJson.exists()) {
-            try {
-                ObjectMapper mapper = new ObjectMapper();
-                basket = mapper.readValue(fileJson, Basket.class);
-                System.out.println("\nКорзина восстановлена из файла-> "
-                        + fileJson.getAbsolutePath());
-                basket.printSummaryList();
-            } catch (Exception e) {
-                throw new RuntimeException(e.getMessage());
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document doc = builder.parse(new File("shop.xml"));
+        doc.getDocumentElement().normalize();
+        Node root = doc.getDocumentElement();
+
+        List<String> dataXml = new ArrayList<>();
+        readConfigXML(root, dataXml);
+
+        Basket basket;
+        ClientLog clientLog = new ClientLog();
+        Config config = new Config();
+
+        config.setLoadEnabled(dataXml.get(0));
+        config.setLoadFileName(dataXml.get(1));
+        config.setLoadFileExtension(dataXml.get(2));
+        config.setSaveEnabled(dataXml.get(3));
+        config.setSaveFileName(dataXml.get(4));
+        config.setSaveFileExtension(dataXml.get(5));
+        config.setLogEnabled(dataXml.get(6));
+        config.setLogFileName(dataXml.get(7));
+
+        File fileLoad = new File(config.getLoadFileName());
+        File fileSave = new File(config.getSaveFileName());
+        File fileCSV = new File(config.getLogFileName());
+
+        if (config.isLoadEnabled()) {
+            if (config.getLoadFileExtension().equals("json")) {
+                if (fileLoad.exists()) {
+                    try {
+                        ObjectMapper mapper = new ObjectMapper();
+                        basket = mapper.readValue(fileLoad, Basket.class);
+                        System.out.println("\nКорзина восстановлена из файла-> "
+                                + fileLoad.getAbsolutePath());
+                        basket.printSummaryList();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e.getMessage());
+                    }
+
+                } else {
+                    basket = new Basket(products, prices);
+                }
+            } else {
+                try {
+                    if (fileLoad.createNewFile()) {
+                        System.out.println("\nСоздан файл для хранения корзины-> "
+                                + fileLoad.getAbsolutePath());
+                        basket = new Basket(products, prices);
+                    } else {
+
+                        basket = Basket.loadFromTxtFile(fileLoad, products, prices);
+                        System.out.println("\nКорзина восстановлена из файла-> "
+                                + fileLoad.getAbsolutePath());
+                        basket.printSummaryList();
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
         } else {
             basket = new Basket(products, prices);
         }
+
         basket.printPossibleList();
         int basketSize = basket.getProducts().length;
 
@@ -76,21 +131,54 @@ public class Main {
             }
 
             basket.addToList(productCode, productAmount);
-            clientLog.log(productCode, productAmount);
+
+            if (config.isSaveEnabled()) {
+                if (config.getSaveFileExtension().equals("json")) {
+
+                    try {
+                        ObjectMapper mapper = new ObjectMapper();
+                        mapper.writeValue(fileSave, basket);
+                        messageSave(fileSave);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e.getMessage());
+                    }
+                } else {
+                    basket.saveToTxtFile(fileSave);
+                    messageSave(fileSave);
+                }
+            }
+
+            if (config.isLogEnabled()) {
+                clientLog.log(productCode, productAmount);
+            }
+        }
+        basket.printSummaryList();
+        if (config.isLogEnabled()) {
+            clientLog.exportAsCSV(fileCSV);
         }
 
-        basket.printSummaryList();
-        clientLog.exportAsCSV(fileCSV);
+    }
 
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.writeValue(fileJson, basket);
-            System.out.println("\nИнформация записана в файл -> "
-                    + fileJson.getAbsolutePath());
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
+    private static void readConfigXML(Node node, List<String> dataXml) {
+        NodeList nodeList = node.getChildNodes();
+        for (int i = 0; i < nodeList.getLength(); i++) {
+            Node currentNode = nodeList.item(i);
+
+            if (Node.ELEMENT_NODE == currentNode.getNodeType()) {
+                Element element = (Element) currentNode;
+                if (currentNode.getChildNodes().getLength() == 1) {
+                    dataXml.add(element.getTextContent());
+                }
+                readConfigXML(currentNode, dataXml);
+            }
         }
     }
+
+    public static void messageSave(File file) {
+        System.out.println("\nИнформация сохранена в файл-> "
+                + file.getAbsolutePath());
+    }
+    
 }
 
 
