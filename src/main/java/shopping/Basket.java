@@ -56,7 +56,8 @@ public class Basket implements Serializable {
             } else if ("txt".equals(fileFormat)) {
                 saveToTxtFile(new File(fileName));
             } else {
-                throw new RuntimeException("Неизвестное расширение файла: " + fileFormat);
+                throw new RuntimeException(
+                        "Сохранение невозможно! Неизвестное расширение файла: " + fileFormat);
             }
         }
     }
@@ -85,15 +86,12 @@ public class Basket implements Serializable {
     static Basket loadFromFile(String fileName, String fileFormat, String[] products, int[] prices) {
         File fileLoad = new File(fileName);
         if (fileLoad.exists()) {
-            if ("json".equals(fileFormat)) {
-                return loadFromJsonFile(fileLoad);
-            } else if ("txt".equals(fileFormat)) {
-                return loadFromTxtFile(fileLoad, products, prices);
-            } else {
-                throw new RuntimeException("Неизвестное расширение файла: " + fileFormat);
-            }
+            return "json".equals(fileFormat)
+                    ? loadFromJsonFile(fileLoad)
+                    : loadFromTxtFile(fileLoad, products, prices);
         } else {
-            System.out.println("Файла для восстановления не существует: " + fileName);
+            System.out.println("Файла для восстановления не существует: "
+                    + fileLoad.getAbsolutePath());
         }
         return new Basket(products, prices);
     }
@@ -106,8 +104,7 @@ public class Basket implements Serializable {
                 fileData = buffer.readLine();
             }
             basket = new Basket(products, prices);
-            basket.basket = Arrays.stream(
-                    fileData.split(" "))
+            basket.basket = Arrays.stream(fileData.split(" "))
                     .mapToInt(Integer::parseInt)
                     .toArray();
             basket.messageLoad(fileLoad);

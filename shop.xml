@@ -11,7 +11,7 @@
         <format>json</format>
     </save>
     <log>
-        <enabled>true</enabled>
+        <enabled>false</enabled>
         <fileName>client</fileName>
     </log>
 </config>
