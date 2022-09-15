@@ -15,19 +15,24 @@ public class ClientLog {
         this.entry = new ArrayList<>();
     }
 
-    public void log(int productCode, int productAmount) {
-        String[] choice = new String[2];
-        choice[0] = Integer.toString(productCode + 1);
-        choice[1] = Integer.toString(productAmount);
-        entry.add(choice);
+    public void log(int productCode, int productAmount, boolean enabled) {
+        if (enabled) {
+            String[] choice = new String[2];
+            choice[0] = Integer.toString(productCode + 1);
+            choice[1] = Integer.toString(productAmount);
+            entry.add(choice);
+        }
     }
 
-    public void exportAsCSV(File fileCSV) {
-
-        try (CSVWriter csvWriter = new CSVWriter(new FileWriter(fileCSV))) {
-            csvWriter.writeAll(entry);
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
+    public void exportAsCSV(String fileName, boolean enabled) {
+        if (enabled) {
+            try (CSVWriter csvWriter = new CSVWriter(new FileWriter(fileName))) {
+                csvWriter.writeAll(entry);
+                System.out.println("\nЛоги сохранены в файл-> "
+                        + new File(fileName).getAbsolutePath());
+            } catch (Exception e) {
+                throw new RuntimeException(e.getMessage());
+            }
         }
     }
 }

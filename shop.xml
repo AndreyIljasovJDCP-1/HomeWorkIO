@@ -2,16 +2,16 @@
 <config>
     <load>
         <enabled>true</enabled>
-        <fileName>basket.txt</fileName>
-        <format>txt</format>
+        <fileName>basket</fileName>
+        <format>json</format>
     </load>
     <save>
         <enabled>true</enabled>
-        <fileName>basket.json</fileName>
+        <fileName>basket</fileName>
         <format>json</format>
     </save>
     <log>
         <enabled>true</enabled>
-        <fileName>client.csv</fileName>
+        <fileName>client</fileName>
     </log>
 </config>

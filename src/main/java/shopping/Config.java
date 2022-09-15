@@ -7,11 +7,9 @@ public class Config {
     private boolean logEnabled;
     private String loadFileName;
     private String saveFileName;
-
-    private String loadFileExtension;
-    private String saveFileExtension;
-
-    private  String logFileName;
+    private String loadFileFormat;
+    private String saveFileFormat;
+    private String logFileName;
 
     public Config() {
 
@@ -42,7 +40,7 @@ public class Config {
     }
 
     public String getLoadFileName() {
-        return "basket_repo/" + loadFileName;
+        return "basket_repo/" + loadFileName + "." + loadFileFormat;
     }
 
     public void setLoadFileName(String loadFileName) {
@@ -50,34 +48,34 @@ public class Config {
     }
 
     public String getSaveFileName() {
-        return "basket_repo/" + saveFileName;
+        return "basket_repo/" + saveFileName + "." + saveFileFormat;
     }
 
     public void setSaveFileName(String saveFileName) {
         this.saveFileName = saveFileName;
     }
 
-    public String getLoadFileExtension() {
-        return loadFileExtension;
+    public String getLoadFileFormat() {
+        return loadFileFormat;
     }
 
-    public void setLoadFileExtension(String loadFileExtension) {
-        this.loadFileExtension = loadFileExtension;
+    public void setLoadFileFormat(String loadFileFormat) {
+        this.loadFileFormat = loadFileFormat;
     }
 
-    public String getSaveFileExtension() {
-        return saveFileExtension;
+    public String getSaveFileFormat() {
+        return saveFileFormat;
     }
 
     public String getLogFileName() {
-        return "basket_repo/" + logFileName;
+        return "basket_repo/" + logFileName + ".csv";
     }
 
     public void setLogFileName(String logFileName) {
         this.logFileName = logFileName;
     }
 
-    public void setSaveFileExtension(String saveFileExtension) {
-        this.saveFileExtension = saveFileExtension;
+    public void setSaveFileFormat(String saveFileFormat) {
+        this.saveFileFormat = saveFileFormat;
     }
 }

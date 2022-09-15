@@ -1,5 +1,7 @@
 package shopping;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.*;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -47,31 +49,82 @@ public class Basket implements Serializable {
         }
     }
 
-    public void saveToTxtFile(File textFile) {
+    public void saveToFile(String fileName, String fileFormat, boolean enabled) {
+        if (enabled) {
+            if ("json".equals(fileFormat)) {
+                saveToJsonFile(new File(fileName));
+            } else if ("txt".equals(fileFormat)) {
+                saveToTxtFile(new File(fileName));
+            } else {
+                throw new RuntimeException("Неизвестное расширение файла: " + fileFormat);
+            }
+        }
+    }
+
+    public void saveToTxtFile(File fileSave) {
         String basketTxt = Arrays.stream(basket)
                 .mapToObj(c -> c + " ")
                 .collect(Collectors.joining());
 
-        try (BufferedWriter buffer = new BufferedWriter(new FileWriter(textFile))) {
+        try (BufferedWriter buffer = new BufferedWriter(new FileWriter(fileSave))) {
             buffer.write(basketTxt);
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage());
         }
-
     }
 
-    static Basket loadFromTxtFile(File textFile, String[] products, int[] prices) {
+    public void saveToJsonFile(File fileSave) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.writeValue(fileSave, this);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    static Basket loadFromFile(String fileName, String fileFormat, String[] products, int[] prices) {
+        File fileLoad = new File(fileName);
+        if (fileLoad.exists()) {
+            if ("json".equals(fileFormat)) {
+                return loadFromJsonFile(fileLoad);
+            } else if ("txt".equals(fileFormat)) {
+                return loadFromTxtFile(fileLoad, products, prices);
+            } else {
+                throw new RuntimeException("Неизвестное расширение файла: " + fileFormat);
+            }
+        } else {
+            System.out.println("Файла для восстановления не существует: " + fileName);
+        }
+        return new Basket(products, prices);
+    }
+
+    static Basket loadFromTxtFile(File fileLoad, String[] products, int[] prices) {
         Basket basket;
-        try (BufferedReader buffer = new BufferedReader(new FileReader(textFile))) {
+        try (BufferedReader buffer = new BufferedReader(new FileReader(fileLoad))) {
             String fileData = "";
             while (buffer.ready()) {
                 fileData = buffer.readLine();
             }
-            buffer.close();
             basket = new Basket(products, prices);
-            basket.basket = Arrays.stream(fileData.split(" "))
+            basket.basket = Arrays.stream(
+                    fileData.split(" "))
                     .mapToInt(Integer::parseInt)
                     .toArray();
+            basket.messageLoad(fileLoad);
+            basket.printSummaryList();
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+        return basket;
+    }
+
+    static Basket loadFromJsonFile(File fileLoad) {
+        Basket basket;
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            basket = mapper.readValue(fileLoad, Basket.class);
+            basket.messageLoad(fileLoad);
+            basket.printSummaryList();
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage());
         }
@@ -113,5 +166,17 @@ public class Basket implements Serializable {
             System.out.printf("%d. %s Цена: %3d руб/шт.\n",
                     i + 1, products[i], prices[i]);
         }
+    }
+
+    public void messageSave(String file, boolean saveEnabled) {
+        if (saveEnabled) {
+            System.out.println("\nИнформация сохранена в файл-> "
+                    + new File(file).getAbsolutePath());
+        }
+    }
+
+    public void messageLoad(File fileLoad) {
+        System.out.println("\nИнформация восстановлена из файла-> "
+                + fileLoad.getAbsolutePath());
     }
 }
