@@ -31,25 +31,10 @@ public class Main {
         int productAmount;
         Basket basket;
         ClientLog clientLog = new ClientLog();
-        Config config = new Config();
-
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        Document doc = builder.parse(new File("shop.xml"));
-        doc.getDocumentElement().normalize();
-        Node root = doc.getDocumentElement();
-
-        List<String> dataXml = new ArrayList<>();
-        readXML(root, dataXml); //считываем данные из shop.xml в лист dataXml
-
-        config.setLoadEnabled(dataXml.get(0));
-        config.setLoadFileName(dataXml.get(1));
-        config.setLoadFileFormat(dataXml.get(2));
-        config.setSaveEnabled(dataXml.get(3));
-        config.setSaveFileName(dataXml.get(4));
-        config.setSaveFileFormat(dataXml.get(5));
-        config.setLogEnabled(dataXml.get(6));
-        config.setLogFileName(dataXml.get(7));
+        //считываем данные из shop.xml в config последовательно
+        Config config = getConfigFromXML();
+        //считываем данные из shop.xml в config через рекурсию
+        //Config config = getConfigFromXMLRecursion();
 
         basket = config.isLoadEnabled()
                 ? Basket.loadFromFile(config.getLoadFileName(), config.getLoadFileFormat(), products, prices)
@@ -92,6 +77,69 @@ public class Main {
         clientLog.exportAsCSV(config.getLogFileName(), config.isLogEnabled());
     }
 
+    /**
+     * считать данные из shop.xml в лист dataXml последовательно
+     *
+     * @return Config config
+     */
+    private static Config getConfigFromXML() throws ParserConfigurationException, IOException, SAXException {
+        Config config = new Config();
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document doc = builder.parse(new File("shop.xml"));
+        doc.getDocumentElement().normalize();
+
+        NodeList nodeList = doc.getElementsByTagName("load");
+        Node node = nodeList.item(0);
+        if (node.getNodeType() == Node.ELEMENT_NODE) {
+            Element element = (Element) node;
+            config.setLoadEnabled(element.getElementsByTagName("enabled").item(0).getTextContent());
+            config.setLoadFileName(element.getElementsByTagName("fileName").item(0).getTextContent());
+            config.setLoadFileFormat(element.getElementsByTagName("format").item(0).getTextContent());
+        }
+        nodeList = doc.getElementsByTagName("save");
+        node = nodeList.item(0);
+        if (node.getNodeType() == Node.ELEMENT_NODE) {
+            Element element = (Element) node;
+            config.setSaveEnabled(element.getElementsByTagName("enabled").item(0).getTextContent());
+            config.setSaveFileName(element.getElementsByTagName("fileName").item(0).getTextContent());
+            config.setSaveFileFormat(element.getElementsByTagName("format").item(0).getTextContent());
+        }
+        nodeList = doc.getElementsByTagName("log");
+        node = nodeList.item(0);
+        if (node.getNodeType() == Node.ELEMENT_NODE) {
+            Element element = (Element) node;
+            config.setLogEnabled(element.getElementsByTagName("enabled").item(0).getTextContent());
+            config.setLogFileName(element.getElementsByTagName("fileName").item(0).getTextContent());
+        }
+        return config;
+    }
+
+    /**
+     * считать данные из shop.xml в лист dataXml через рекурсию
+     *
+     * @return Config config
+     */
+    private static Config getConfigFromXMLRecursion() throws ParserConfigurationException, IOException, SAXException {
+        Config config = new Config();
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document doc = builder.parse(new File("shop.xml"));
+        Node root = doc.getDocumentElement();
+        List<String> dataXml = new ArrayList<>();
+        readXML(root, dataXml);
+
+        config.setLoadEnabled(dataXml.get(0));
+        config.setLoadFileName(dataXml.get(1));
+        config.setLoadFileFormat(dataXml.get(2));
+        config.setSaveEnabled(dataXml.get(3));
+        config.setSaveFileName(dataXml.get(4));
+        config.setSaveFileFormat(dataXml.get(5));
+        config.setLogEnabled(dataXml.get(6));
+        config.setLogFileName(dataXml.get(7));
+        return config;
+    }
+
     private static void readXML(Node node, List<String> dataXml) {
         NodeList nodeList = node.getChildNodes();
         for (int i = 0; i < nodeList.getLength(); i++) {
@@ -105,6 +153,31 @@ public class Main {
                 readXML(currentNode, dataXml);
             }
         }
+    }
+
+    /**
+     * Это будет работать, если несколько повторяющихся
+     * узлов <>load</>, к каждому создается объект.
+     */
+    private static Config getConfig(Node node) {
+        Config config = new Config();
+        if (node.getNodeType() == Node.ELEMENT_NODE) {
+            Element element = (Element) node;
+            config.setLoadEnabled(getTagValue("enabled", element));
+            config.setLoadFileName(getTagValue("fileName", element));
+            config.setLoadFileFormat(getTagValue("format", element));
+        }
+        return config;
+    }
+
+    /**
+     * Получаем значение последнего элемента в списке
+     * т.е. спускаемся на самый нижний уровень этого узла, деток нет.
+     */
+    private static String getTagValue(String tag, Element element) {
+        NodeList nodeList = element.getElementsByTagName(tag).item(0).getChildNodes();
+        Node node = (Node) nodeList.item(0);
+        return node.getNodeValue();
     }
 
 }

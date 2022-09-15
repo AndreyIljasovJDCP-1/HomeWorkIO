@@ -78,4 +78,24 @@ public class Config {
     public void setSaveFileFormat(String saveFileFormat) {
         this.saveFileFormat = saveFileFormat;
     }
+
+    @Override
+    public String toString() {
+        return "<config>\n"
+                +"<load>\n"
+                + "<enabled>" + loadEnabled + "</enabled>\n"
+                + "<fileName>" + loadFileName + "</fileName>\n"
+                + "<format>" + loadFileFormat + "</format>\n"
+                + "</load>\n"
+                + "<save>\n"
+                + "<enabled>" + saveEnabled + "</enabled>\n"
+                + "<fileName>" + saveFileName + "</fileName>\n"
+                + "<format>" + saveFileFormat + "</format>\n"
+                + "</save>\n"
+                + "<log>\n"
+                + "<enabled>" + logEnabled + "</enabled>\n"
+                + "<fileName>" + logFileName + "</fileName>\n"
+                + "</log>\n"
+                +"</config>";
+    }
 }
