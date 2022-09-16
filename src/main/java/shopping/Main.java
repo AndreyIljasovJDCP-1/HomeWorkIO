@@ -172,7 +172,7 @@ public class Main {
 
     /**
      * Получаем значение последнего элемента в списке
-     * т.е. спускаемся на самый нижний уровень этого узла, деток нет.
+     * т.е. спускаемся на самый нижний уровень этого узла.
      */
     private static String getTagValue(String tag, Element element) {
         NodeList nodeList = element.getElementsByTagName(tag).item(0).getChildNodes();
