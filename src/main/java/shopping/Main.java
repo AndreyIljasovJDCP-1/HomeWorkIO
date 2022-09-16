@@ -1,6 +1,7 @@
 package shopping;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -11,9 +12,12 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class Main {
     public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
@@ -35,10 +39,11 @@ public class Main {
         File fileConfig=new File("basket_repo/config.sys");
         // todo загрузить из файла config.sys
         if (fileConfig.exists()) {
-            config = loadConfig();
+            config = loadConfigGson(fileConfig);
         } else {
-            System.out.printf("Файла %s конфигурации не существует: \n Настройки будут загружены из shop.xml"
-                    ,fileConfig.getAbsolutePath());
+            System.out.printf("Файла %s конфигурации не существует: \n"
+                            + " Настройки будут загружены из shop.xml",
+                    fileConfig.getAbsolutePath());
 
             //считываем данные из shop.xml в config последовательно
             config = getConfigFromXML();
@@ -87,47 +92,78 @@ public class Main {
         basket.messageSave(config.getSaveFileName(), config.isSaveEnabled());
         clientLog.exportAsCSV(config.getLogFileName(), config.isLogEnabled());
         //todo сохранить настройки в config.sys
-        saveConfig(config);
+        saveConfigGson(config,fileConfig);
     }
-    /*private static void saveConfigGson(Config config) {
-        Gson gson = new Gson();
-        try ( ObjectOutputStream out = new ObjectOutputStream(
-                new FileOutputStream("basket_repo/config.sys"))) {
-            out.writeObject(config);
+     /**
+             * Десериализация через Gson
+     */
+    private static Config loadConfigGson(File fileConfig) throws IOException {
+        Config config;
+        String stringJson="";
+        GsonBuilder builder = new GsonBuilder();
+        builder.setPrettyPrinting();
+        Gson gson = builder.create();
+
+        /*stringJson= Files.readAllLines(
+                Path.of(fileConfig.getPath())).stream().collect(Collectors.joining());*/
+        try (BufferedReader reader = new BufferedReader(new FileReader(fileConfig))) {
+            while (reader.ready()) {
+                stringJson = reader.lines().collect(Collectors.joining(System.lineSeparator()));
+            }
+            config = gson.fromJson(stringJson, Config.class);
+            System.out.println("\nИнформация восстановлена из файла-> "
+                    + fileConfig.getAbsolutePath());
         } catch (Exception e) {
-            throw new RuntimeException();
+            throw new RuntimeException(e.getMessage());
+        }
+        return config;
+    }
+
+    /**
+     * Сериализация через Gson
+     */
+    private static void saveConfigGson(Config config,File fileConfig) {
+        GsonBuilder builder = new GsonBuilder();
+        builder.setPrettyPrinting();
+        Gson gson = builder.create();
+        String stringJson = gson.toJson(config);
+        try (FileWriter writer = new FileWriter(fileConfig)) {
+            writer.write(stringJson);
+            System.out.println("\nКонфигурация записана в файл -> "
+                    + fileConfig.getAbsolutePath());
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
         }
 
-    }*/
+    }
+
 
     /**
      * Сериализация через writeObject
-     * @param config
-     */
+     *//*
     private static void saveConfig(Config config) {
         try (ObjectOutputStream out = new ObjectOutputStream(
                 new FileOutputStream("basket_repo/config.sys"))) {
             out.writeObject(config);
         } catch (Exception e) {
-            throw new RuntimeException();
+            throw new RuntimeException(e.getMessage());
         }
 
     }
 
-    /**
+    *//**
      * Десериализация через readObject
-     * @return
-     */
+     *//*
     private static Config loadConfig() {
         Config config;
         try (ObjectInputStream in = new ObjectInputStream(
                 new FileInputStream("basket_repo/config.sys"))) {
             config = (Config) in.readObject();
         } catch (Exception e) {
-            throw new RuntimeException();
+            throw new RuntimeException(e.getMessage());
         }
         return config;
-    }
+    }*/
 
     /**
      * считать данные из shop.xml в лист dataXml последовательно
