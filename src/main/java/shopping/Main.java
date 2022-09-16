@@ -10,8 +10,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -30,14 +29,23 @@ public class Main {
         int basketSize = products.length;
         int productCode;
         int productAmount;
-        Basket basket;
-        // todo загрузить из файла config.sys
-
         ClientLog clientLog = new ClientLog();
-        //считываем данные из shop.xml в config последовательно
-        Config config = getConfigFromXML();
-        //считываем данные из shop.xml в config через рекурсию
-        //Config config = getConfigFromXMLRecursion();
+        Basket basket;
+        Config config;
+        File fileConfig=new File("basket_repo/config.sys");
+        // todo загрузить из файла config.sys
+        if (fileConfig.exists()) {
+            config = loadConfig();
+        } else {
+            System.out.printf("Файла %s конфигурации не существует: \n Настройки будут загружены из shop.xml"
+                    ,fileConfig.getAbsolutePath());
+
+            //считываем данные из shop.xml в config последовательно
+            config = getConfigFromXML();
+            //считываем данные из shop.xml в config через рекурсию
+            //Config config = getConfigFromXMLRecursion();
+        }
+
 
         basket = config.isLoadEnabled()
                 ? Basket.loadFromFile(config.getLoadFileName(), config.getLoadFileFormat(), products, prices)
@@ -79,13 +87,48 @@ public class Main {
         basket.messageSave(config.getSaveFileName(), config.isSaveEnabled());
         clientLog.exportAsCSV(config.getLogFileName(), config.isLogEnabled());
         //todo сохранить настройки в config.sys
+        saveConfig(config);
+    }
+    /*private static void saveConfigGson(Config config) {
+        Gson gson = new Gson();
+        try ( ObjectOutputStream out = new ObjectOutputStream(
+                new FileOutputStream("basket_repo/config.sys"))) {
+            out.writeObject(config);
+        } catch (Exception e) {
+            throw new RuntimeException();
+        }
+
+    }*/
+
+    /**
+     * Сериализация через writeObject
+     * @param config
+     */
+    private static void saveConfig(Config config) {
+        try (ObjectOutputStream out = new ObjectOutputStream(
+                new FileOutputStream("basket_repo/config.sys"))) {
+            out.writeObject(config);
+        } catch (Exception e) {
+            throw new RuntimeException();
+        }
+
     }
 
-private static Config saveConfig(){
-        Gson gson=new Gson();
+    /**
+     * Десериализация через readObject
+     * @return
+     */
+    private static Config loadConfig() {
+        Config config;
+        try (ObjectInputStream in = new ObjectInputStream(
+                new FileInputStream("basket_repo/config.sys"))) {
+            config = (Config) in.readObject();
+        } catch (Exception e) {
+            throw new RuntimeException();
+        }
+        return config;
+    }
 
-return new Config();
-}
     /**
      * считать данные из shop.xml в лист dataXml последовательно
      *
@@ -129,7 +172,8 @@ return new Config();
      *
      * @return Config config
      */
-    private static Config getConfigFromXMLRecursion() throws ParserConfigurationException, IOException, SAXException {
+    private static Config getConfigFromXMLRecursion() throws
+            ParserConfigurationException, IOException, SAXException {
         Config config = new Config();
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();

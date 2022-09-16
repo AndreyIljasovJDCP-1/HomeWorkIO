@@ -1,6 +1,8 @@
 package shopping;
 
-public class Config {
+import java.io.Serializable;
+
+public class Config implements Serializable {
 
     private boolean loadEnabled;
     private boolean saveEnabled;
