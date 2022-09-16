@@ -36,10 +36,11 @@ public class Main {
         ClientLog clientLog = new ClientLog();
         Basket basket;
         Config config;
-        File fileConfig=new File("basket_repo/config.sys");
+        File fileConfig = new File("basket_repo/config.json");
         // todo загрузить из файла config.sys
         if (fileConfig.exists()) {
             config = loadConfigGson(fileConfig);
+            //config=loadConfig(fileConfig);
         } else {
             System.out.printf("Файла %s конфигурации не существует: \n"
                             + " Настройки будут загружены из shop.xml",
@@ -92,26 +93,27 @@ public class Main {
         basket.messageSave(config.getSaveFileName(), config.isSaveEnabled());
         clientLog.exportAsCSV(config.getLogFileName(), config.isLogEnabled());
         //todo сохранить настройки в config.sys
-        saveConfigGson(config,fileConfig);
+        saveConfigGson(config, fileConfig);
     }
-     /**
-             * Десериализация через Gson
+
+    /**
+     * Десериализация через Gson
      */
-    private static Config loadConfigGson(File fileConfig) throws IOException {
+    private static Config loadConfigGson(File fileConfig) {
         Config config;
-        String stringJson="";
-        GsonBuilder builder = new GsonBuilder();
-        builder.setPrettyPrinting();
+        String stringJson;
+        GsonBuilder builder = new GsonBuilder().setPrettyPrinting();
+        //builder.setPrettyPrinting();
         Gson gson = builder.create();
 
-        /*stringJson= Files.readAllLines(
-                Path.of(fileConfig.getPath())).stream().collect(Collectors.joining());*/
         try (BufferedReader reader = new BufferedReader(new FileReader(fileConfig))) {
-            while (reader.ready()) {
+            stringJson= String.join("", Files.readAllLines(
+                    Path.of(fileConfig.getPath())));
+            /*while (reader.ready()) {
                 stringJson = reader.lines().collect(Collectors.joining(System.lineSeparator()));
-            }
+            }*/
             config = gson.fromJson(stringJson, Config.class);
-            System.out.println("\nИнформация восстановлена из файла-> "
+            System.out.println("\nКонфигурация восстановлена из файла-> "
                     + fileConfig.getAbsolutePath());
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage());
@@ -122,25 +124,24 @@ public class Main {
     /**
      * Сериализация через Gson
      */
-    private static void saveConfigGson(Config config,File fileConfig) {
+    private static void saveConfigGson(Config config, File fileConfig) {
         GsonBuilder builder = new GsonBuilder();
         builder.setPrettyPrinting();
         Gson gson = builder.create();
         String stringJson = gson.toJson(config);
         try (FileWriter writer = new FileWriter(fileConfig)) {
             writer.write(stringJson);
-            System.out.println("\nКонфигурация записана в файл -> "
+            System.out.println("\nКонфигурация сохранена в файл -> "
                     + fileConfig.getAbsolutePath());
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage());
         }
-
     }
-
 
     /**
      * Сериализация через writeObject
-     *//*
+     * записывает байткод
+     */
     private static void saveConfig(Config config) {
         try (ObjectOutputStream out = new ObjectOutputStream(
                 new FileOutputStream("basket_repo/config.sys"))) {
@@ -148,22 +149,22 @@ public class Main {
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage());
         }
-
     }
 
-    *//**
+    /**
      * Десериализация через readObject
-     *//*
-    private static Config loadConfig() {
+     * считывает байткод
+     */
+    private static Config loadConfig(File fileConfig) {
         Config config;
         try (ObjectInputStream in = new ObjectInputStream(
-                new FileInputStream("basket_repo/config.sys"))) {
+                new FileInputStream(fileConfig))) {
             config = (Config) in.readObject();
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage());
         }
         return config;
-    }*/
+    }
 
     /**
      * считать данные из shop.xml в лист dataXml последовательно
