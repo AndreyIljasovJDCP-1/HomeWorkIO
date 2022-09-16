@@ -1,5 +1,6 @@
 package shopping;
 
+import com.google.gson.Gson;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -30,6 +31,8 @@ public class Main {
         int productCode;
         int productAmount;
         Basket basket;
+        // todo загрузить из файла config.sys
+
         ClientLog clientLog = new ClientLog();
         //считываем данные из shop.xml в config последовательно
         Config config = getConfigFromXML();
@@ -75,8 +78,14 @@ public class Main {
         basket.printSummaryList();
         basket.messageSave(config.getSaveFileName(), config.isSaveEnabled());
         clientLog.exportAsCSV(config.getLogFileName(), config.isLogEnabled());
+        //todo сохранить настройки в config.sys
     }
 
+private static Config saveConfig(){
+        Gson gson=new Gson();
+
+return new Config();
+}
     /**
      * считать данные из shop.xml в лист dataXml последовательно
      *
